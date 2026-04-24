@@ -30,7 +30,7 @@ os.makedirs(output_path, exist_ok=True)
 
 # --- Preprocessing Question 1 ---
 # Split X and y into training and test sets using an 80/20 split with stratify=y and random_state=42. Print the shapes of all four arrays.
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 4, stratify = y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42, stratify = y)
 # stratify maintains class proportions
 
 print(f"Shape of X : X.train shape ({X_train.shape}), X.test shape ({X_test.shape})")
