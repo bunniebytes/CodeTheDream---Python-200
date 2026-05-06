@@ -113,6 +113,7 @@ rewrite_bullets(bullets)
 # --- Task 3: Cover Letter Generator ---
 # Write a generate_cover_letter() function that takes a job title and a brief description of the user's background, and returns a cover letter opening paragraph.
 # Use few-shot prompting: include at least two examples of strong cover letter openings in your prompt before asking for the new one. Your examples should demonstrate the tone and style you want — confident, specific, and not generic.
+# Why did you choose those particular examples? What does the few-shot pattern help control in the output?
 
 def generate_cover_letter(job_title: str, background: str) -> str:
 	prompt = f"""
@@ -122,25 +123,18 @@ def generate_cover_letter(job_title: str, background: str) -> str:
 	Here are two examples of the style and tone you should match:
 
 	Example 1:
-	Role: Data Analyst at a healthcare nonprofit
+	Role: Software Engineer 1 at a video streaming big tech company
 	
-	Background: Seven years as a registered nurse, recently completed a data analytics bootcamp.
+	Background: Streamer who documents their journey in learning to program.  Self taught programmer.
 	
-	Opening: After seven years as a registered nurse, I've spent my career making decisions under pressure using incomplete information — which turns out to be excellent training for data analysis. I recently completed a data analytics program where I built dashboards tracking patient outcomes across departments. I'm excited to bring that combination of clinical context and technical skill to [Company]'s mission-driven work.
-
+	I am writing to express my interest for the Software Engineer position at [Company].  I believe that the potential someone has isn't reflected in a resume, and I believe my journey shows this.  As someone who transitioned into programming from a non-traditional background that streams on [Company], I deeply resonate with [Company]'s mission of “empower communities to build together”. I am a Twitch streamer and stream the process of learning to program with my community.  My experience has made me appreciate Twitch's initiatives like Creator Clubs and the Stream Together program, which foster connection and collaboration among creators.  I previously developed an interactive game with another streamer where Twitch viewers could plant, water, accessorize, and even playfully attack each other.  This project not only enhanced community engagement in chat but also allowed me to apply my programming skills in a creative and interactive way.
+ 
 	Example 2:
-	Role: Junior Software Engineer at a fintech startup
-	
-	Background: Ten years in retail banking operations, self-taught Python developer for two years.
-	
-	Opening: I spent a decade on the operations side of banking, watching technology decisions get made by people who had never processed a wire transfer or resolved a failed ACH batch.  That frustration turned into curiosity, and two years of self-teaching Python later, I'm ready to be on the other side of those decisions. I'm applying to [Company] because your work on payment infrastructure is exactly where my domainexpertise and new technical skills intersect.
+	Role: Software Engineer at a collaborative, social media-focused tech company
  
-	Example 3:
-	Role: Software Engineer at a collaborative, product-focused tech company
- 
-	Background: Former operations analyst who transitioned into software engineering
+	Background: Former figure skating coach and competitive figure skater, self-taught programmer
 
-	Opening: After several years working in operations, I found myself increasingly drawn to the systems behind the work — not just using tools, but improving and building them. I transitioned into software engineering and have since developed applications that streamline internal workflows and reduce manual effort. What stands out to me about [Company] is your emphasis on ownership and collaborative problem-solving, which mirrors how I approach building software: with a focus on clarity, impact, and shared responsibility. I'm excited about the opportunity to contribute to a team that values thoughtful engineering as much as the outcomes it drives.
+	Opening: I'm excited to apply for the Software Engineer I position at [Company]. As someone passionate about programming and continuous learning, I truly believe this role would be an incredible fit for me. [Company's] unique combination of creativity, technology, and its positive impact on people really resonates with me, and I'm eager to contribute to the team. One of the things I admire most about [Company] is how it provides a platform for people to find inspiration while staying organized. The way [Company] blends visual appeal with the ability to categorize and curate ideas is something I deeply appreciate. I love how the platform encourages creativity, allowing users to explore new ideas while keeping everything organized in a way that feels accessible and personal. 
 
 	Now write an opening paragraph for this person:
 	Role: {job_title}
@@ -159,7 +153,7 @@ background = "Five years of experience as a middle school math teacher; recently
 
 generate_cover_letter(job_title, background)
 
-# TODO answer the question, maybe change some example or add
+# Using the few-shot pattern helps control the length and format of the bot's response.  It also gives a tone and voice for the bot to use.  I chose these examples as they are cover letters to specific companies I have applied to and received invites to OA.  I want the bot to keep the opening in my voice.
 
 # --- Task 4: Moderation Check ---
 # Before sending any user input to the model in your chatbot loop, run it through OpenAI's moderation endpoint first.
