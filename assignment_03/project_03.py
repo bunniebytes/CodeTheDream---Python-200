@@ -48,7 +48,22 @@ def load_data(file):
     df["spam"] = df["spam"].astype(int)
     
     # print(df.head(10))
+    print(f"Dataframe info : {df.info()}")
+    print(f"Dataset shape : {df.shape}")
+    print(f"Class counts : {df['spam'].value_counts()}")
     return df
+
+    # How many emails are in the dataset? How balanced are the two classes? What
+    # does that balance (or imbalance) mean for how you should interpret a raw
+    # accuracy score? There are 4601 emails in the dataset.  Spam has 1813
+    # emails and ham has 2788, so this is slightly imbalanced. Since the dataset
+    # is slightly skewed towards ham the model has a 61% chance of predicting
+    # correctly when choosing not spam.  This means we should not use the raw
+    # accuracy score as a reliable metric for evaluating the model's
+    # performance.  We need to take into account other metrics like precision,
+    # recall, or F1 score to properly evaluate how the model detects spam.  The
+    # accuracy needs to be interpreted carefully as high accuracy does not
+    # necessarily mean the model is good at detecting spam.
     
 @task()
 def plot_boxplot(df):
@@ -67,6 +82,35 @@ def plot_boxplot(df):
         plt.title(f"{feature} Distribution")
         plt.savefig(f"{output_path}/{feature}_distribution.png")
         plt.close()
+        
+# Box Plot : word_freq_free Spam emails show a noticeably higher median
+# frequency of the word "free" compared to ham emails where most of the values
+# were closer to 0.  There are some high outliers in the spam distribution which
+# indicates that some spam emails use "free" a lot to catch the attention of the
+# reader.  Ham emails being closer to 0 shows that the word is not used as much.
+# Overall the word "free" shows a strong indicator of spam.
+
+# Box Plot : char_freq_! Spam emails have a higher median frequency of "!" than
+# ham emails, however there is more spread of values and more extreme outliers
+# for ham compared to spam.  This suggests that occassionally non spam emails
+# use a lot of high punctuation frequency (maybe an over zealous friend?).  Spam
+# emails are more tightly clusted showing more consistent use of the exclamation
+# marks.  This plot shows there is some difference in distribution but the use
+# of "!" is not a strong seperator between spam and ham emails.
+
+# Box Plot : capital_run_length_total Spam emails show a much higher median and
+# larger spread in capital run length totals compared to ham emails.  This
+# suggests that spam will use more consecutive capital letters to catch the
+# attention of the user.  Ham emails are more tightly clustered without many
+# extreme outliers, which means more normal writing patterns.  The outliers
+# could be the same friend as the one who was over zealous with the use of "!".
+# Even though there is some overlap, the difference is great enough that this
+# feature would be moderately useful in classifying between spam and ham emails.
+
+# The differences between spam and ham vary by feature.  Some features show
+# clearer seperation like word_freq_free, but others like char_freq_! had some
+# unexpected behavior.  This tells us no single feature is sufficient for
+# classification and the model will need to combine multiple weak signals.
     
 # --- Task 2: Prepare Your Data ---
 task()
@@ -94,7 +138,12 @@ def scale_data(train_set, test_set):
     
     return train_set_scaled, test_set_scaled
 
-# Before we can scale our data we need to make sure the split them into train and test sets.  We only fit_transform the train set and then transform the test set using the same scaler we fit to the train set.  We also used stratify = y to keep the same proporions of spam vs ham in train and test.  We will not use the scaled data on Decision Tree or Random Forest but will use it on KNN and Logistic Regression
+# Before we can scale our data we need to make sure the split them into train
+# and test sets.  We only fit_transform the train set and then transform the
+# test set using the same scaler we fit to the train set.  We also used stratify
+# = y to keep the same proporions of spam vs ham in train and test.  We will not
+# use the scaled data on Decision Tree or Random Forest but will use it on KNN
+# and Logistic Regression
 
 # PCA preprocessing
 @task()
@@ -200,7 +249,10 @@ def evaluate_decision_tree(X_train, X_test, y_train, y_test):
             best_depth = depth
             best_test_predict = test_predict
         
-    # I notice as depth increases the accuracy increases as well.  At None (or unlimited) the training accuracy is almost at exactly 1.  The difference between the training accuracy and the test accuracy became greater at this point, which is a sign of over fitting.
+    # I notice as depth increases the accuracy increases as well.  At None (or
+    # unlimited) the training accuracy is almost at exactly 1.  The difference
+    # between the training accuracy and the test accuracy became greater at this
+    # point, which is a sign of over fitting.
 
     print(f"Best depth : {best_depth}")
     print(f"Accuracy Score : {accuracy_score(y_test, best_test_predict)}")
@@ -233,7 +285,22 @@ def find_top_10_features(X_train, model, model_name):
     
     importance_df = importance_df.sort_values(by = "importance", ascending = False)
     
+    print(f"Top 10 Features :\n{importance_df.head(10)}")
+    
     return importance_df.head(10)
+
+# Across both Decision Tree and Random Forest the most important features were a
+# mix of punctuation based features like char_freq_$, char_freq_! and spam
+# related words like word_freq_free, word_freq_remove, word_freq_money,
+# word_freq_your as well as capital run length features
+# capital_run_length_total/average/longest.  One thing observed for both is that
+# the punctuation features "!" and "$" rank as the most important predictors for
+# both.  This suggests that spam emails rely heavily on symbols and formatting
+# to attract the users attention.  Word based features like "free", "remove",
+# and "money" also appear strongly, which shows that spam emails try to catch
+# user's attention with specific language.  Overall the model is learning spam
+# is characterized by formatting signals (punctuation and capitalization) as
+# well as certain language patterns rather than any single word.
 
 @task()
 def plot_importances_bar_chart(df, model_name):
@@ -285,9 +352,25 @@ def plot_confusion_matrix(y_test, y_predict):
     plt.savefig(f"{output_path}/best_model_confusion_matrix.png")
     plt.close()
     
-    # A mistake the Random Forest Classifier makes most often is that it lets in more spam emails than accidently blocking actual emails.  This is okay in my opinion as we would rather spam get through that actual emails missed because they are filtered out.
+    # A mistake the Random Forest Classifier makes most often is that it lets in
+    # more spam emails than accidently blocking actual emails.  This is okay in
+    # my opinion as we would rather spam get through that actual emails missed
+    # because they are filtered out.
 
-# The model that performed best was the Random Forest Classifier.  When I compared PCA vs non-PCA, the non-PCA (knn_scaled and log_regression_model_scaled) performed better than PCA (knn_pca and log_regression_model_pca).  I originally thought accuracy would be the right metric to optimize because hypothetically the more accurate the spam filter, the number of false positives and false negatives should go down.  The issue is, the errors (false positives vs false negatives) are no the same cost.  Ideally we would want to minimize false positives, where legitimate emails are incorrectly marked as spam because this could cause the user to miss some important emails.  False negatives, where spam is accidently let through as legitimate mail is still an issue, but would not cause as much harm as a false positive.  So while accuracy is a good measurement for general performance measure, recall and precision are more appropriate for evaluating a spam classifier.
+# The model that performed best was the Random Forest Classifier.  When I
+# compared PCA vs non-PCA, the non-PCA (knn_scaled and
+# log_regression_model_scaled) performed better than PCA (knn_pca and
+# log_regression_model_pca).  I originally thought accuracy would be the right
+# metric to optimize because hypothetically the more accurate the spam filter,
+# the number of false positives and false negatives should go down.  The issue
+# is, the errors (false positives vs false negatives) are no the same cost.
+# Ideally we would want to minimize false positives, where legitimate emails are
+# incorrectly marked as spam because this could cause the user to miss some
+# important emails.  False negatives, where spam is accidently let through as
+# legitimate mail is still an issue, but would not cause as much harm as a false
+# positive.  So while accuracy is a good measurement for general performance
+# measure, recall and precision are more appropriate for evaluating a spam
+# classifier.
 
 @task()
 def evaluate_cross_val(model, X_train_set, y_train, model_name):
@@ -304,7 +387,11 @@ def evaluate_cross_val(model, X_train_set, y_train, model_name):
     print(f"Mean CV score: {cv_scores.mean()}")
     print(f"Standard deviation: {cv_scores.std()}")
     
-    # The model that was the most accurate was Random Forest with a mean of 0.9541.  The model that was the most stable was Logistic Regression using PCA training set with a standard deviation of 0.0033.  The ranking of the accuracy matches the single train/test split, but the standard deviation shows that the Random forest is less stable that some of the other models.
+    # The model that was the most accurate was Random Forest with a mean of
+    # 0.9541.  The model that was the most stable was Logistic Regression using
+    # PCA training set with a standard deviation of 0.0033.  The ranking of the
+    # accuracy matches the single train/test split, but the standard deviation
+    # shows that the Random forest is less stable that some of the other models.
 
 # --- Task 5: Building a Prediction Pipeline ---
 def build_tree_pipeline():
@@ -331,7 +418,15 @@ def train_and_evaluate_pipeline(pipeline, X_train, X_test, y_train, y_test):
     print(f"Accuracy Score : {pipeline.score(X_test, y_test)}")
     print(f"Classification Report:\n {classification_report(y_test, y_predict)}")
     
-    # The 2 pipelines do not have the same structure.  One calls a scaler, while the other does not.  Tree based models do not use scaled training sets because they don't need normalization while linear/distance based models benefit from normalization.  It is practical to build it this way to prevent data leakage.  This is also packaged neatly into one object so it will give consistent results without second guessing if any steps are missing.  This also makes it easier to hand off to people because again, everything is package neatly into one object and they just need to call predict().
+    # The 2 pipelines do not have the same structure.  One calls a scaler, while
+    # the other does not.  Tree based models do not use scaled training sets
+    # because they don't need normalization while linear/distance based models
+    # benefit from normalization.  It is practical to build it this way to
+    # prevent data leakage.  This is also packaged neatly into one object so it
+    # will give consistent results without second guessing if any steps are
+    # missing.  This also makes it easier to hand off to people because again,
+    # everything is package neatly into one object and they just need to call
+    # predict().
     
 @flow()
 def flow_function(file):
