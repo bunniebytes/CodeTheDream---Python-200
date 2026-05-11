@@ -14,8 +14,10 @@ from sklearn.model_selection import train_test_split
 
 from scipy.stats import pearsonr
 
-# If you were loading this with pd.read_csv(), what parameter would you need to specify beyond the filename? Write that observation as a comment at the top of your script before you write the load call.
-# We would need to also have the sep parameter because the separator is ";" in the csv file.
+# If you were loading this with pd.read_csv(), what parameter would you need to
+# specify beyond the filename? Write that observation as a comment at the top of
+# your script before you write the load call. We would need to also have the sep
+# parameter because the separator is ";" in the csv file.
 
 file_name = "student_performance_math.csv"
 output_path = "./outputs"
@@ -33,7 +35,10 @@ def create_df(file_name):
     # Binary feature stored as "F"/"M" -- you will convert to 0/1
         # sex - Student sex (F=0, M=1).
     # Grade columns
-        # G3 - Final period grade (0-20) -- your prediction target. Note: Some students have G3=0. This represents absence from the final exam, not an actual score of zero. You will need to decide how to handle these rows.
+        # G3 - Final period grade (0-20) -- your prediction target. Note: Some
+        # students have G3=0. This represents absence from the final exam, not
+        # an actual score of zero. You will need to decide how to handle these
+        # rows.
     logger = get_run_logger()
     
     logger.info("Creating dataframe")
@@ -44,7 +49,11 @@ def create_df(file_name):
     print(df.dtypes)
     return df
 
-# Then plot a histogram of G3 with 21 bins (one per possible value, 0-20). Add a title "Distribution of Final Math Grades", label both axes, and save to outputs/g3_distribution.png. You should see a cluster of zeros sitting apart from the main distribution. They represent the students who didn't take the final exam.
+# Then plot a histogram of G3 with 21 bins (one per possible value, 0-20). Add a
+# title "Distribution of Final Math Grades", label both axes, and save to
+# outputs/g3_distribution.png. You should see a cluster of zeros sitting apart
+# from the main distribution. They represent the students who didn't take the
+# final exam.
 @task
 def plot_histogram(df):
     logger = get_run_logger()
@@ -70,7 +79,9 @@ def process_df(df):
     df_filtered = df[df["G3"] != 0].copy()
     print(df_filtered.head(5))
     
-    # We want to filter them out because they would skew the data to a negative.  This is not the actual grade that the students received, they were just absent that day.
+    # We want to filter them out because they would skew the data to a negative.
+    # This is not the actual grade that the students received, they were just
+    # absent that day.
     
     # Changing the gender and the yes/no columns to 1/0
     logger.info("Mapping the binary columns to have 1/0 for their values")
@@ -89,21 +100,30 @@ def process_df(df):
     print(f"Original dataframe : {corr_coef}")
     print(f"Filtered dataframe : {corr_coef_filtered}")
     
-    # The students with 0 as their G3 score made the absences look like a weak predictor because the 0 does not actually reflect their score just that they did not take the test.  When we remove the rows with 0 from the data frame it shows a stronger negative correlation where it reflects more absences mean lower scores.
+    # The students with 0 as their G3 score made the absences look like a weak
+    # predictor because the 0 does not actually reflect their score just that
+    # they did not take the test.  When we remove the rows with 0 from the data
+    # frame it shows a stronger negative correlation where it reflects more
+    # absences mean lower scores.
     
     return df_filtered
 
 # --- Task 3: Exploratory Data Analysis ---
 @task(retries = 3, retry_delay_seconds = 2)
 def compute_corr(df):
-    # Compute the Pearson correlation between each numeric feature and G3 on the filtered dataset, and print them sorted from most negative to most positive. Which feature has the strongest relationship with G3? Are any results surprising?
+    # Compute the Pearson correlation between each numeric feature and G3 on the
+    # filtered dataset, and print them sorted from most negative to most
+    # positive. Which feature has the strongest relationship with G3? Are any
+    # results surprising?
     logger = get_run_logger()
     
     logger.info("Getting correlation between G3 and all the other columns")
     corrs = df.corr(numeric_only = True)["G3"].sort_values()
     print(corrs)
     
-    # The strongest relationships with G3 (not including G1 and G2) is failures and school support as well as absences.  These all have a negative relationship; so the greater they are, G3 tends to be lower.
+    # The strongest relationships with G3 (not including G1 and G2) is failures
+    # and school support as well as absences.  These all have a negative
+    # relationship; so the greater they are, G3 tends to be lower.
     
 @task()
 def plot_scatter(df):
@@ -139,6 +159,18 @@ def plot_boxplot(df):
     plt.savefig(f"{output_path}/correlation_schoolsup_g3.png")
     plt.close()
     
+#  Use the correlation results to guide you -- what relationships seem worth a
+# closer look? Add a comment for each plot describing what you see. Attendence
+# seems worth a closer look as there seems to be a slight negative relationship
+# between the absences and final grade.  There seems to be other factors that
+# would affect the final grade as well, so this is not perfectly linear, but it
+# does seem to contribute to lower grades with higher absences.  Regarding
+# school support, this shows that the kids with school support tend to have
+# lower grades than those without.  This does seem to be related, but it is a
+# reverse causation.  School support does not cause the bad grade, rather the
+# lower grades are probably why the school is getting involved in providing
+# additional support.
+    
 # --- Task 4: Baseline Model ---
 @task
 def build_model(df):
@@ -163,9 +195,20 @@ def build_model(df):
     r2 = model.score(X_test, y_test)
     print(f"R² : {r2}")
     
-    # given that grades are on a 0-20 scale, what do the slopes and RMSE tell you in plain English? Is R² better or worse than you expected from exploratory data analysis?
-    # TODO
-    # The model explains very little.  I actually would have thought it would have been better for the R² since failures was the strongest relationship
+    # Given that grades are on a 0-20 scale, what do the slopes and RMSE tell
+    # you in plain English? Is R² better or worse than you expected from
+    # exploratory data analysis? The slope at -1.4275 tells us that the model
+    # predicts the student's final grade (G3) will decrease by 1.4 points on
+    # average for each failure the student has.  The RMSE of 2.9617 means that
+    # the model's predictions are usually off by 3 grade points.  This is
+    # actually pretty large considering the grades are on a scale of 0-20.  The
+    # R² of 0.0895 means that most of the differences in grades are caused by
+    # other factors that were not in this predictor.  The R² is lower than
+    # expected based on the exploratory data analysis.  Even though failures
+    # have a strong visible relationship with grades (the more failures means
+    # lower grades), it is not strong enough to rely on predicting the grades
+    # accurately.  There are many other factors that influence the student's
+    # grades.
     
 # --- Task 5: Build the Full Model ---
 @task
@@ -200,12 +243,31 @@ def build_full_model(df, columns):
     for name, coef in zip(columns, model.coef_):
         print(f"{name:12s}: {coef:+.3f}")
         
-    # Are any signs (positive or negative) surprising given what you know about the data? For any surprising result, add a comment with your best explanation. Then compare train R² to test R² -- are they close, or is there a gap? What does that tell you about the model?
-    # This was not surprising to me, but could be for someone reading the data.  For school support there was a very strong negative relationship (-2.062).  It is a bit misleading since someone with poor grades would be the ones who would need school support.  So it is most likely that they had poor grades first and then received school support, not that they have school support and still received poor grades on top of that.
-    # With train R² and test R², they are close with no gap, but overall it is still a weak model because of how low they are.
+    # Are any signs (positive or negative) surprising given what you know about
+    # the data? For any surprising result, add a comment with your best
+    # explanation. Then compare train R² to test R² -- are they close, or is
+    # there a gap? What does that tell you about the model? This was not
+    # surprising to me, but could be for someone reading the data.  For school
+    # support there was a very strong negative relationship (-2.062).  It is a
+    # bit misleading since someone with poor grades would be the ones who would
+    # need school support.  So it is most likely that they had poor grades first
+    # and then received school support, not that they have school support and
+    # still received poor grades on top of that. With train R² and test R², they
+    # are close with no gap, but overall it is still a weak model because of how
+    # low they are.
 
-    # Finally, add a comment answering: if you were deploying this model in production, which features would you keep and which would you drop? Justify your choices based on what you see in the numbers.
-    # I would drop freetime, activities, as well as travel time since they are super low (close to 0) so they don't do much to help predict.  I would keep failures and studytime as they were the strongest relationships.  I would also keep higher (education) as that shows the student is invested in their future.  School support should also be kept even though it is a backwards from what we expect because it still tells us a story of if the student is doing well or not.  Mother and father education should also be kept, they are small but still have some impact as well as internet because it represents they have access to resources.
+    # Finally, add a comment answering: if you were deploying this model in
+    # production, which features would you keep and which would you drop?
+    # Justify your choices based on what you see in the numbers. I would drop
+    # freetime, activities, as well as travel time since they are super low
+    # (close to 0) so they don't do much to help predict.  I would keep failures
+    # and studytime as they were the strongest relationships.  I would also keep
+    # higher (education) as that shows the student is invested in their future.
+    # School support should also be kept even though it is a backwards from what
+    # we expect because it still tells us a story of if the student is doing
+    # well or not.  Mother and father education should also be kept, they are
+    # small but still have some impact as well as internet because it represents
+    # they have access to resources.
     
     return y_predict, y_test
 
@@ -233,14 +295,36 @@ def plot_predicted_vs_actual(predicted, test):
     plt.savefig(f"{output_path}/predicted_vs_actual.png")
     plt.close()
     
-    # Add a comment: does the model seem to struggle more at the high end, the low end, or is error roughly uniform across grade levels? What does a value above or below the diagonal mean?
-    # The model seems to be the same across all grade levels.  The values above the diagonal mean that the model predicted the grade to be less than the actual grade and when they are below they predicted the grade to be more than the actual grade
+    # Add a comment: does the model seem to struggle more at the high end, the
+    # low end, or is error roughly uniform across grade levels? What does a
+    # value above or below the diagonal mean? The model seems to be the same
+    # across all grade levels.  The values above the diagonal mean that the
+    # model predicted the grade to be less than the actual grade and when they
+    # are below they predicted the grade to be more than the actual grade. Above
+    # the diagonal indicates underprediction, while below indicates
+    # overprediction. The spread of points suggests whether errors are uniform
+    # or biased toward high or low grades.
     
-    # The size of the filtered dataset and the test set
-    # The RMSE and R² of your best model in plain language -- on a 0-20 scale, what does a typical prediction error actually mean?
-    # Which two features have the largest positive and largest negative coefficients, and what those mean
-    # One result that surprised you
-    # The size of the dataset only included the students that took the final and the test set was only 20% of this already filtered data.  The RMSE of 2.86 means that the prediction error can be off by almost 3 points, which on a 0-20 scale is significant. The value of 0.15 for R² shows only a small portion of variation in grades.  The feature with the largest negative coefficients was school support, but that is slightly misleading as the students who are already struggling are the ones more likely to receive the additional support, not they are receiving support and still receiving low grades.  The largest positive coefficients were higher (education) and internet showing that those with the means and resources along with motivation for further education performed a little better.
+    # The size of the filtered dataset and the test set The RMSE and R² of your
+    # best model in plain language -- on a 0-20 scale, what does a typical
+    # prediction error actually mean? Which two features have the largest
+    # positive and largest negative coefficients, and what those mean One result
+    # that surprised you The size of the dataset only included the students that
+    # took the final and the test set was only 20% of this already filtered
+    # data.  The RMSE of 2.86 means that the prediction error can be off by
+    # almost 3 points, which on a 0-20 scale is significant. The value of 0.15
+    # for R² shows only a small portion of variation in grades.  The feature
+    # with the largest negative coefficients was school support, but that is
+    # slightly misleading as the students who are already struggling are the
+    # ones more likely to receive the additional support, not they are receiving
+    # support and still receiving low grades.  The largest positive coefficients
+    # were higher (education) and internet showing that those with the means and
+    # resources along with motivation for further education performed a little
+    # better.  The largest positive coefficient would be the new model including
+    # G1 (0.885).  The surprising result would be school support as looking at
+    # the graphs and data, it looks as though school support has a negative
+    # effect, but in reality it is where the student is already struggling and
+    # then offered school support.
     
 @flow
 def flow_function(file_name):
@@ -262,8 +346,20 @@ def flow_function(file_name):
     # --- Neglected Feature: The Power of G1 ---
     with_g1_predict, with_g1_test = build_full_model(df_filtered, feature_cols + ["G1"])
     
-    # Add a comment addressing these questions: does a high R² here mean G1 is causing G3? Is this a useful model for identifying students who might struggle? What might educators need to do if they wanted to intervene early, before G1 is even available?
-    # High R² does not mean G1 is causing G3.  It is a strong predictor since it is the same student in the same subject meaning they will have the same study habits and motivation.  This model is good for predicting the final grade after the course has already started (first grades are in) but it is not a good model for early intervention since this model is not available until after G1 is.  If they want to intervene early they should look at absences and prior academic performance as well as study habits to predict if they need to intervene before the first grades are in. 
+    # Add a comment addressing these questions: does a high R² here mean G1 is
+    # causing G3? Is this a useful model for identifying students who might
+    # struggle? What might educators need to do if they wanted to intervene
+    # early, before G1 is even available? Adding G1 increased the model's R²
+    # substantially (from about 0.1539 to about 0.7491), showing that G1 is
+    # extremely predictive of final grades.  High R² does not mean G1 is causing
+    # G3.  It is a strong predictor since it is the same student in the same
+    # subject meaning they will have the same study habits and motivation.  This
+    # model is good for predicting the final grade after the course has already
+    # started (first grades are in) but it is not a good model for early
+    # intervention since this model is not available until after G1 is.  If they
+    # want to intervene early they should look at absences and prior academic
+    # performance as well as study habits to predict if they need to intervene
+    # before the first grades are in.
 
 if __name__ == "__main__":
     flow_function(file_name)
