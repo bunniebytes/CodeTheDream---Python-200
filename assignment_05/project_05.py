@@ -40,13 +40,15 @@ Also:
 
 # I made the deliberate decision to ask them take on the personality as a hiring manager as those are who decides if a candidate is offered an OA/interview.  I also mentioned that they should be well-versed in ATS in case the filtering is automated.  I also broke it down to bullets and sections to help the model follow it more reliably.
 
-# --- Task 2: Bullet Point Rewriter ---
-# Write a standalone rewrite_bullets() function that takes a list of resume bullet points and returns improved versions. This function will later be called from inside the chatbot loop.
+# --- Task 2: Bullet Point Rewriter --- Write a standalone rewrite_bullets()
+# function that takes a list of resume bullet points and returns improved
+# versions. This function will later be called from inside the chatbot loop.
 
 # Your function should:
-	# Use delimiters to clearly separate the user's bullet points from your instructions
-	# Ask for the output as a JSON list where each item has "original" and "improved" keys
-	# Parse the JSON response and print both versions of each bullet side by side
+	# Use delimiters to clearly separate the user's bullet points from your
+	# instructions Ask for the output as a JSON list where each item has
+	# "original" and "improved" keys Parse the JSON response and print both
+	# versions of each bullet side by side
 
 # What makes these bullets weak, and what kinds of changes did the model suggest?
 
@@ -87,7 +89,9 @@ def rewrite_bullets(bullets: list[str]) -> list[dict]:
 	messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}]
 	 # Your code here: call get_completion(), parse the JSON, and return the result
 	results = get_completion(messages)
- 
+
+	parsed = []
+	
 	try:
 		parsed = json.loads(results.replace("```", "").replace("json", ""))
 	except Exception as e:
@@ -99,6 +103,8 @@ def rewrite_bullets(bullets: list[str]) -> list[dict]:
 			print(f'Original : {bullet["original"]}')
 		if bullet.get("improved"):
 			print(f'Improved : {bullet["improved"]}')
+	
+	return parsed
 
 bullets = [
 	"Helped customers with their problems",
@@ -106,14 +112,22 @@ bullets = [
 	"Worked with a team to finish the project on time"
 ]
 
-rewrite_bullets(bullets)
+bullets = rewrite_bullets(bullets)
 
-# The bullets were weak because they did not really express how the user's skills apply to someone transitioning to tech.  They also were very vague in general which doesn't explain what skills they actually have, just what they did.  The imroved ones were better because they showcased skills that the user would have used to accomplish the vague statements without making anything up.
+# The bullets were weak because they did not really express how the user's
+# skills apply to someone transitioning to tech.  They also were very vague in
+# general which doesn't explain what skills they actually have, just what they
+# did.  The imroved ones were better because they showcased skills that the user
+# would have used to accomplish the vague statements without making anything up.
 
-# --- Task 3: Cover Letter Generator ---
-# Write a generate_cover_letter() function that takes a job title and a brief description of the user's background, and returns a cover letter opening paragraph.
-# Use few-shot prompting: include at least two examples of strong cover letter openings in your prompt before asking for the new one. Your examples should demonstrate the tone and style you want — confident, specific, and not generic.
-# Why did you choose those particular examples? What does the few-shot pattern help control in the output?
+# --- Task 3: Cover Letter Generator --- Write a generate_cover_letter()
+# function that takes a job title and a brief description of the user's
+# background, and returns a cover letter opening paragraph. Use few-shot
+# prompting: include at least two examples of strong cover letter openings in
+# your prompt before asking for the new one. Your examples should demonstrate
+# the tone and style you want — confident, specific, and not generic. Why did
+# you choose those particular examples? What does the few-shot pattern help
+# control in the output?
 
 def generate_cover_letter(job_title: str, background: str) -> str:
 	prompt = f"""
@@ -153,7 +167,10 @@ background = "Five years of experience as a middle school math teacher; recently
 
 generate_cover_letter(job_title, background)
 
-# Using the few-shot pattern helps control the length and format of the bot's response.  It also gives a tone and voice for the bot to use.  I chose these examples as they are cover letters to specific companies I have applied to and received invites to OA.  I want the bot to keep the opening in my voice.
+# Using the few-shot pattern helps control the length and format of the bot's
+# response.  It also gives a tone and voice for the bot to use.  I chose these
+# examples as they are cover letters to specific companies I have applied to and
+# received invites to OA.  I want the bot to keep the opening in my voice.
 
 # --- Task 4: Moderation Check ---
 # Before sending any user input to the model in your chatbot loop, run it through OpenAI's moderation endpoint first.
@@ -172,7 +189,8 @@ def is_safe(text: str) -> bool:
 	if not flagged:
 		return True
 	else:
-		return "I can't process that request as written. Could you rephrase it?"
+		print("I can't process that request as written. Could you rephrase it?")
+		return False
 	
 safe_input = "How do I improve my resume?"
 unsafe_input = "How can I hack into someone's email account?"
@@ -258,12 +276,29 @@ def run_chatbot():
 if __name__ == "__main__":
 	run_chatbot()
  
-# --- Task 6: Ethics Reflection ---
-# Option A — Comment block: At the bottom of project_05.py, add a comment block responding to the questions below. Write at least 3-5 sentences total.
-# Option B — Short video: Record a 2-3 minute Loom or YouTube video walking through the same questions and paste the link as a comment at the bottom of project_05.py. This can be submitted as your second LMS link.
-# Respond to at least two of the following three questions:
-    # Your bot was trained on text written by and about certain kinds of people. How might this produce biased advice? Could it favor certain communication styles, industries, or cultural backgrounds?
-    # What could go wrong if a job-seeker submitted the bot's output directly — without reviewing it — to a real employer?
-    # What is one guardrail you would add if you were deploying this tool professionally? (A guardrail is any design choice that reduces the chance of harm — a UI warning, a moderation filter, a usage policy, a disclaimer, or something else entirely.)
+# --- Task 6: Ethics Reflection --- Option A — Comment block: At the bottom of
+# project_05.py, add a comment block responding to the questions below. Write at
+# least 3-5 sentences total. Option B — Short video: Record a 2-3 minute Loom or
+# YouTube video walking through the same questions and paste the link as a
+# comment at the bottom of project_05.py. This can be submitted as your second
+# LMS link. Respond to at least two of the following three questions:
+    # Your bot was trained on text written by and about certain kinds of people.
+    # How might this produce biased advice? Could it favor certain communication
+    # styles, industries, or cultural backgrounds? What could go wrong if a
+    # job-seeker submitted the bot's output directly — without reviewing it — to
+    # a real employer? What is one guardrail you would add if you were deploying
+    # this tool professionally? (A guardrail is any design choice that reduces
+    # the chance of harm — a UI warning, a moderation filter, a usage policy, a
+    # disclaimer, or something else entirely.)
     
-# Something that could go wrong if a job-seeker submits a bot's output directly without reviewing it is that experience of the user may be embelished to the point that it is not true.  If the recruiter and hiring manager sees the resume and believe that it is true and the person is invited to an interview, it may waste everyone's time.  The bot being trained on certain text can produce biased advice as it could give off the wrong tone based on where a person is applying.  There is also more information out there based on big corporate roles that smaller skilled roles and the way the bot structures it's suggestions may not be appropriate for the lesser known roles.  The bot could provide the wrong information and misunderstand the experience due to not having a lot of information readily available.
+# Something that could go wrong if a job-seeker submits a bot's output directly
+# without reviewing it is that experience of the user may be embelished to the
+# point that it is not true.  If the recruiter and hiring manager sees the
+# resume and believe that it is true and the person is invited to an interview,
+# it may waste everyone's time.  The bot being trained on certain text can
+# produce biased advice as it could give off the wrong tone based on where a
+# person is applying.  There is also more information out there based on big
+# corporate roles that smaller skilled roles and the way the bot structures it's
+# suggestions may not be appropriate for the lesser known roles.  The bot could
+# provide the wrong information and misunderstand the experience due to not
+# having a lot of information readily available.
