@@ -40,7 +40,7 @@ print(f"Shape of x before reshape() : {x.shape}")
 x_reshape = x.reshape(-1, 1)
 print(f"Shape of x after reshape : {x_reshape.shape}")
 
-#
+# scikit learn expects X to be a 2D array because it treats data as rows and columns (samples and features).  Even if there is only one feature it still needs to be a column for it to understand the structure of the dataset.
 
 # --- Question 3 ---
 # Create a KMeans model with n_clusters=3 and random_state=42, fit it to X_clusters, and predict a cluster label for each point. Print the cluster centers (kmeans.cluster_centers_) and how many points fell into each cluster using np.bincount(labels).
