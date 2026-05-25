@@ -77,6 +77,7 @@ def process_df(df):
     # Filtering out the rows of G3 that are 0
     logger.info("Creating df with G3 0's filtered out")
     df_filtered = df[df["G3"] != 0].copy()
+    print(f"Shape of dataframe: {df_filtered.shape}")
     print(df_filtered.head(5))
     
     # We want to filter them out because they would skew the data to a negative.
