@@ -45,7 +45,7 @@ def celsius_to_fahrenheit(celsius: float) -> str:
 
 # JSON schema for function
 celsius_to_fahrenheit_schema = {
-            "name" : "celsius_to_farenheit",                            "description" : "Convert a Celsius temperature to Farenheit",
+            "name" : "celsius_to_fahrenheit",                            "description" : "Convert a Celsius temperature to Fahrenheit",
     "parameters" : {
         "type" : "object",
         "properties" : {
@@ -64,7 +64,7 @@ print(celsius_to_fahrenheit(100))
 print(celsius_to_fahrenheit(-40))
 
 # --- Q2 ---
-# Will calling run_agent("Convert 100 degrees Celsius to Fahrenheit") trigger a tool call? Why or why not? It will not trigger a tool call because we have not added celsius_to_farenheit to our agent yet.
+# Will calling run_agent("Convert 100 degrees Celsius to Fahrenheit") trigger a tool call? Why or why not? It will not trigger a tool call because we have not added celsius_to_fahrenheit to our agent yet.
 # How many API calls will be made to answer this query? Only 1
 
 def get_current_time() -> str:
@@ -83,6 +83,9 @@ tools = [
                 'required': [],
             },
         },
+    },
+    {
+        "type" : "function",
         "function" : celsius_to_fahrenheit_schema
     }
 ]
@@ -92,7 +95,7 @@ def run_agent(user_prompt: str) -> str:
 
     SYSTEM_PROMPT = '''You are a simple assistant that can tell the current time.
                      Use the tool get_current_time whenever a user asks about the time.
-                     Use the tool celsius_to_farenheit whenever a user asks to convert a temperature from celsius to farenheit'''
+                     Use the tool celsius_to_fahrenheit whenever a user asks to convert a temperature from celsius to fahrenheit'''
     
     # Step 1: start the conversation with system and user messages
     messages = [
@@ -129,7 +132,7 @@ def run_agent(user_prompt: str) -> str:
             args = json.loads(tool_call.function.arguments)
             if function_name == 'get_current_time':
                 tool_result = get_current_time()
-            elif function_name == "celsius_to_farenheit":
+            elif function_name == "celsius_to_fahrenheit":
                 celsius = args["celsius"]
                 tool_result = celsius_to_fahrenheit(celsius)
             else:
@@ -171,7 +174,7 @@ run_agent("Convert 100 degrees Celsius to Fahrenheit")
 response_a = run_agent("What is 37 degrees Celsius in Fahrenheit?")
 print("Response A:", response_a)
 # A tool was called because the query specifically asks what a
-# provided temperature in Celsius is in Farenheit, which is a tool we
+# provided temperature in Celsius is in Fahrenheit, which is a tool we
 # have.
 
 response_b = run_agent("What is the boiling point of water in plain English?")
