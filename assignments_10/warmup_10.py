@@ -17,12 +17,21 @@
 #     Determine whether a product review is more than 100 words long.
 # Deterministic code - Counting the amount of words is a straightforward operation with an objective answer.
 
-# --- LLMs as Transform Question 2 --- The prompt produces
-# unstructured output, so the number of sentences, wording, and format
-# may vary between responses. This makes it difficult for downstream
-# systems to reliably parse, validate, and store the data. Using a
-# structured format such as JSON provides a consistent schema, making
-# parsing predictable and reducing failures in automated pipelines.
+# --- LLMs as Transform Question 2 ---
+
+# The prompt produces unstructured output, so the number of sentences,
+# wording, and format may vary between responses. This makes it
+# difficult for downstream systems to reliably parse, validate, and
+# store the data. Using a structured format such as JSON provides a
+# consistent schema, making parsing predictable and reducing failures
+# in automated pipelines.
+
+# Prompt Rewrite:
+# Summarize the product review and return the result in JSON format only.
+# {
+#   "summary": "<short summary of the review>"
+# }
+# Do not include any extra text, explanations, or formatting outside of valid JSON.
 
 # --- LLMs as Transform Question 3 ---
 # Sequential processing would take approximately 50,000 seconds.
