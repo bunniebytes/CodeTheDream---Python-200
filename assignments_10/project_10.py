@@ -6,6 +6,9 @@
 # definition of good/bad changes. For this case, a rule-based approach
 # would likely be better.
 
+# Video
+# https://youtu.be/wbpIAhiTIo4 
+
 import json
 import os
 import pandas as pd
