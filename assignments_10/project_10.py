@@ -62,13 +62,11 @@ def load_raw_data():
         print("Using fallback dataset")
 
         with open(
-            "/weather_raw.json",
+            "./weather_raw.json",
             "r",
             encoding="utf-8"
         ) as f:
             return json.load(f)
-    
-    return data
 
 def reshape_weather(data):
     hourly = data["hourly"]
